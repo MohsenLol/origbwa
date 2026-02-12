@@ -2201,6 +2201,13 @@ __global__ void CHAINFILTERING_sortChains_kernel(mem_chain_v* d_chains, void* d_
 	// int seqID = blockIdx.x;
 	int n_chn = d_chains[blockIdx.x].n;
 	if (n_chn==0) return;
+	// early safety bound (recommended even if rare)
+    if (n_chn > MAX_N_CHAIN) {
+        if (threadIdx.x == 0) {
+            printf("Warning: n_chn > MAX_N_CHAIN (%d > %d) seqID=%d\n", n_chn, MAX_N_CHAIN, blockIdx.x);
+        }
+        return;
+    }
 	void* d_buffer_ptr = CUDAKernelSelectPool(d_buffer_pools, blockIdx.x%32);
 	mem_chain_t* a = d_chains[blockIdx.x].a;	// array of chains
 
