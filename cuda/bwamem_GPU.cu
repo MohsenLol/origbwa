@@ -1872,7 +1872,7 @@ __global__ void SEEDCHAINING_sortSeeds_low_kernel(
 	__syncthreads();
 	// sort keys
 	BlockRadixSort(temp_storage).Sort(thread_keys, thread_values);
-
+	__syncthreads();
 	// reorder seeds to a new array
 	__shared__ mem_seed_t* S_new_seed_a[1];
 	if (threadIdx.x==0){
@@ -1891,8 +1891,11 @@ __global__ void SEEDCHAINING_sortSeeds_low_kernel(
 		// copy to new array
 		new_seed_a[seedID] = seed_a[thread_values[i]];
 	}
-	d_seq_seeds[blockIdx.x].a = new_seed_a;
-}
+	__syncthreads();
+
+	if (threadIdx.x == 0) {
+        d_seq_seeds[blockIdx.x].a = new_seed_a;
+    }
 
 
 // process reads who have more seeds
