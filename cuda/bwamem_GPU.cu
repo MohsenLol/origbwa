@@ -2236,6 +2236,7 @@ __global__ void CHAINFILTERING_sortChains_kernel(mem_chain_v* d_chains, void* d_
 	// sort weights
 	typedef cub::BlockRadixSort<uint32_t, SORTCHAIN_BLOCKDIMX, NKEYS_EACH_THREAD, int> BlockRadixSort;
 	BlockRadixSort().SortDescending(thread_keys, thread_values);
+	__syncthreads();
 	// transfer sorted index array (thread_values) to shared mem
 	for (int k=0; k<NKEYS_EACH_THREAD; k++){
 		new_i[threadIdx.x*NKEYS_EACH_THREAD+k] = thread_values[k];
