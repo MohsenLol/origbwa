@@ -2007,7 +2007,7 @@ __global__ void SEEDCHAINING_chain_kernel(
 	__shared__ int S_suceeding_seed[SORTSEEDSHIGH_MAX_NSEEDS];
 	if (threadIdx.x==0) S_preceding_seed[0] = 0;	// seed 0 always head of a chain
 	for (int seedID=threadIdx.x; seedID<n_seeds&&seedID<SORTSEEDSHIGH_MAX_NSEEDS; seedID+=blockDim.x) S_suceeding_seed[seedID] = INT_MAX;	// initial: no chain yet
-
+	__syncthreads();
 	// for each seed (except 0), find nearest preceding chainable seed
 	int max_chain_gap = d_opt->max_chain_gap;
 	int bandwidth_gap = d_opt->w;
