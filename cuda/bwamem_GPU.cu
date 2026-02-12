@@ -1907,6 +1907,14 @@ __global__ void SEEDCHAINING_sortSeeds_high_kernel(
 	// seqID = blockIdx.x
 	int n_seeds = d_seq_seeds[blockIdx.x].n;
 	if (n_seeds<=SORTSEEDSLOW_MAX_NSEEDS) return;
+	if (n_seeds > SORTSEEDSHIGH_MAX_NSEEDS) {   // assume you define this constant somewhere
+        if (threadIdx.x == 0) {
+            printf("Error: too many seeds for high-sort kernel (seqID=%d, n_seeds=%d > %d)\n",
+                   blockIdx.x, n_seeds, SORTSEEDSHIGH_MAX_NSEEDS);
+        }
+        return;
+    }
+
 	mem_seed_t *seed_a = d_seq_seeds[blockIdx.x].a;
 	// declare sorting variables
 	int64_t thread_keys[SORTSEEDSHIGH_NKEYS_THREAD];	// this will contain rbeg
@@ -1927,8 +1935,9 @@ __global__ void SEEDCHAINING_sortSeeds_high_kernel(
 	// Allocate shared mem
 	__shared__ typename BlockRadixSort::TempStorage temp_storage;
 	// sort keys
+	__syncthreads();
 	BlockRadixSort(temp_storage).Sort(thread_keys, thread_values);
-
+	__syncthreads();
 	// reorder seeds to a new array
 	__shared__ mem_seed_t* S_new_seed_a[1];
 	if (threadIdx.x==0){
@@ -1947,7 +1956,11 @@ __global__ void SEEDCHAINING_sortSeeds_high_kernel(
 		// copy to new array
 		new_seed_a[seedID] = seed_a[thread_values[i]];
 	}
-	d_seq_seeds[blockIdx.x].a = new_seed_a;
+	__syncthreads();
+
+    if (threadIdx.x == 0) {
+        d_seq_seeds[blockIdx.x].a = new_seed_a;
+    }
 }
 
 /* find the smallest seed on seeds such that its rbeg>=rbeg_lower_bound*/
