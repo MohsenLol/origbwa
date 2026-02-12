@@ -1699,7 +1699,12 @@ __global__ void SEEDCHAINING_filter_seeds_kernel(
 		else Sum32 = 0;
 		for (int offset=WARPSIZE/2; offset>0; offset/=2)
 			Sum32 += __shfl_down_sync(0xffffffff, Sum32, offset);
-		Sum += Sum32;
+
+		// Only lane 0 of each warp contributes
+        if ((threadIdx.x & (WARPSIZE - 1)) == 0) {
+            Sum += Sum32;
+        }
+		
 	}
 	// now thread 0 has the correct Sum, allocate new mem_a on thread 0
 	__shared__ uint16_t S_total_nseeds[1];
