@@ -1335,7 +1335,7 @@ __global__ void MEMFINDING_collect_intv_kernel(
 	#pragma unroll
 	for (j=threadIdx.x; j<l_seq; j+=blockDim.x)
 		S_seq[j] = (uint8_t)seq1[j];
-
+	__syncthreads();
 	// allocate memory for SMEM intervals
 	__shared__ bwtintv_t* S_mem_a[1];
 	if (threadIdx.x == 0){
