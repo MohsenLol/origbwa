@@ -1783,6 +1783,7 @@ __global__ void SEEDCHAINING_translate_seedinfo_kernel(
 	int n_seeds = d_aux[blockIdx.x].mem.n;
 	if (n_seeds==0){
 		d_seq_seeds[blockIdx.x].n = 0;
+		d_seq_seeds[blockIdx.x].a = NULL;
 		return;
 	} 
 
