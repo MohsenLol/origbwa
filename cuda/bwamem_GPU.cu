@@ -2046,7 +2046,7 @@ __global__ void SEEDCHAINING_chain_kernel(
 		if (S_suceeding_seed[S_preceding_seed[j]] != j) // not match
 			S_preceding_seed[j] = j;	// make seed j head of chain
 	}
-
+	__syncthreads();
 	// now create the chains based on the doubly linked-lists that we found
 	__shared__ int S_n_chains[1];
 	__shared__ mem_chain_t* S_chain_a[1];
