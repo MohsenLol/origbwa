@@ -1408,7 +1408,7 @@ __global__ void MEMFINDING_collect_intv_kernel_try1(
 	one block convert one read
 	readID = blockIdx.x
  */
-__global__ void PREPROCESS_convert_bit_encoding_kernel(const bseq1_t *d_seqs){
+__global__ void PREPROCESS_convert_bit_encoding_kernel(bseq1_t *d_seqs){
 	char *seq1 = d_seqs[blockIdx.x].seq; 	// get read from global mem
 	int l_seq  = d_seqs[blockIdx.x].l_seq;	// read length
 	for (int j=threadIdx.x; j<l_seq; j+=blockDim.x){
