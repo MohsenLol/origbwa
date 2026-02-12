@@ -2035,7 +2035,6 @@ __global__ void SEEDCHAINING_chain_kernel(
 			{
 				S_preceding_seed[j] = i;
 				atomicMin(&S_suceeding_seed[i], j);
-				S_suceeding_seed[i] = j;
 				break;	// stop at the nearest preceding seed
 			}
 		}
