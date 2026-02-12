@@ -1869,6 +1869,7 @@ __global__ void SEEDCHAINING_sortSeeds_low_kernel(
 	typedef cub::BlockRadixSort<int64_t, SORTSEEDSLOW_BLOCKDIMX, SORTSEEDSLOW_NKEYS_THREAD, int> BlockRadixSort;
 	// Allocate shared mem
 	__shared__ typename BlockRadixSort::TempStorage temp_storage;
+	__syncthreads();
 	// sort keys
 	BlockRadixSort(temp_storage).Sort(thread_keys, thread_values);
 
