@@ -1843,7 +1843,13 @@ __global__ void SEEDCHAINING_sortSeeds_low_kernel(
 	// seqID = blockIdx.x
 	int n_seeds = d_seq_seeds[blockIdx.x].n;
 	if (n_seeds==0) return;
-	if (n_seeds>SORTSEEDSLOW_MAX_NSEEDS) return;
+	if (n_seeds > SORTSEEDSLOW_MAX_NSEEDS) {
+        if (threadIdx.x == 0) {
+            printf("Error: too many seeds to sort (seqID=%d, n_seeds=%d > %d)\n", 
+                   blockIdx.x, n_seeds, SORTSEEDSLOW_MAX_NSEEDS);
+        }
+        return;
+    }
 	mem_seed_t *seed_a = d_seq_seeds[blockIdx.x].a;
 	// declare sorting variables
 	int64_t thread_keys[SORTSEEDSLOW_NKEYS_THREAD];	// this will contain rbeg
