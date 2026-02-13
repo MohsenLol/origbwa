@@ -2284,7 +2284,7 @@ __global__ void CHAINFILTERING_filter_kernel(
 	uint16_t* chn_beg_SM = (uint16_t*)SM; 	// start of chains
 	uint16_t* chn_end_SM = &chn_beg_SM[MAX_N_CHAIN];	// end of chains
 	uint16_t* chn_w_SM = &chn_end_SM[MAX_N_CHAIN];		// weight of chains
-	uint8_t* chn_info_SM = (uint8_t*)&chn_w_SM[MAX_N_CHAIN]; // chains' kept and alt information
+	volatile uint8_t* chn_info_SM = (uint8_t*)&chn_w_SM[MAX_N_CHAIN]; // chains' kept and alt information
 
 	// load data in SM
 	n_iter = ceil((float)n_chn/blockDim.x);
