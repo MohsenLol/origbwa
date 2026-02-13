@@ -2277,7 +2277,7 @@ __global__ void CHAINFILTERING_filter_kernel(
 	void* d_buffer_pools)
 {
 	int i, j, n_chn, n_iter;
-	// int seqID = blockIdx.x;
+	int seqID = blockIdx.x;
 	n_chn = d_chains[blockIdx.x].n;
 	mem_chain_t* a = d_chains[blockIdx.x].a;	// chains vector
 	if (n_chn == 0) return; // no need to filter
