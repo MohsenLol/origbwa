@@ -2383,7 +2383,7 @@ __global__ void mem_chain_flt_kernel(const mem_opt_t *opt,
 {
 	int i, k, n_chn;
 	mem_chain_t	*a;
-
+	int SeqID = blockIdx.x;
 	i = blockIdx.x*blockDim.x + threadIdx.x;
 	if (i>=n) return;
 
