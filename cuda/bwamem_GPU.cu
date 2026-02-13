@@ -2339,6 +2339,7 @@ __global__ void CHAINFILTERING_filter_kernel(
 			}
 			if (j==i)	// this means that chain i not significant overlap with any
 				SET_KEPT(i, 3);
+			__syncthreads();
 		} // keep looping until the kept outcome is certain
 	}
 	__syncthreads();
