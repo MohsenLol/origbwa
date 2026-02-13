@@ -3639,7 +3639,7 @@ void mem_align_GPU(process_data_t *process_data)
 	start = high_resolution_clock::now();
 	/* ----------------------- Fourth part of pipeline: Smith-Waterman extension --------------------------------------*/
 	/* pre-processing for SW extension: count number of seeds a read has, write seed_record to global mem, and allocate vector mem_alnreg_t for each read */
-	if (bwa_verbose>=4) fprintf(stderr, "[M::%-25s] **** [SMITHEWATERMAN]: preprocessing1 ... ", __func__);
+	if (bwa_verbose>=3) fprintf(stderr, "[M::%-25s] **** [SMITHEWATERMAN]: preprocessing1 ... ", __func__);
 	SMITHWATERMAN_preprocessing1_kernel <<< dimGrid_readlevel, dimBlock_readlevel, 0, process_stream >>> (
 			d_chains, d_regs, d_seed_records, d_Nseeds, n_seqs,
 			d_buffer_pools
