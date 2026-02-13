@@ -2329,7 +2329,7 @@ __global__ void CHAINFILTERING_filter_kernel(
 			}
 			if (j==i)	// this means that chain i not significant overlap with any
 				SET_KEPT(i, 3);
-			__syncthreads();
+			//__syncthreads();
 		} // keep looping until the kept outcome is certain
 	}
 	__syncthreads();
@@ -2348,7 +2348,7 @@ __global__ void CHAINFILTERING_filter_kernel(
 		void* d_buffer_ptr = CUDAKernelSelectPool(d_buffer_pools, blockIdx.x%32);
 		*new_a_SM = (mem_chain_t*)CUDAKernelMalloc(d_buffer_ptr, new_n_chn[0]*sizeof(mem_chain_t), 8);
 	}
-	//__syncthreads();
+	__syncthreads();
 	// save to global data
 	n_chn = new_n_chn[0];
 	mem_chain_t* new_a = *new_a_SM;
