@@ -2280,6 +2280,13 @@ __global__ void CHAINFILTERING_filter_kernel(
 	n_chn = d_chains[blockIdx.x].n;
 	mem_chain_t* a = d_chains[blockIdx.x].a;	// chains vector
 	if (n_chn == 0) return; // no need to filter
+	if (n_chn > MAX_N_CHAIN) { // early safety bound (recommended even if rare)
+        if (threadIdx.x == 0) {
+            printf("Warning: n_chn > MAX_N_CHAIN (%d > %d) seqID=%d\n", n_chn, MAX_N_CHAIN, seqID);
+        }
+        return;
+    }
+
 	if (threadIdx.x>=n_chn) return;	// don't run padded threads
 	if (n_chn>MAX_N_CHAIN) n_chn = MAX_N_CHAIN;
 
@@ -2390,6 +2397,13 @@ __global__ void mem_chain_flt_kernel(const mem_opt_t *opt,
 	chains.a = (int*)CUDAKernelMalloc(d_buffer_ptr, sizeof(int)*chains.m, 4);
 	if (n_chn == 0) return; // no need to filter
 	// compute the weight of each chain and drop chains with small weight
+	// early safety bound + thread guard
+    if (n_chn > MAX_N_CHAIN) {
+        if (threadIdx.x == 0) {
+            printf("Warning: n_chn > MAX_N_CHAIN (%d > %d) seqID=%d\n", n_chn, MAX_N_CHAIN, seqID);
+        }
+        return;
+    }
 	for (i = k = 0; i < n_chn; ++i) {
 		mem_chain_t *c = &a[i];
 		c->first = -1; c->kept = 0;
