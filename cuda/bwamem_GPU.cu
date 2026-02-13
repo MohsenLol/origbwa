@@ -3519,13 +3519,18 @@ void mem_align_GPU(process_data_t *process_data)
 
 	perf_profile_file << process_data->n_processed << "," ;
 	auto start = high_resolution_clock::now();
+	auto stop  = start;
+	auto duration = duration_cast<milliseconds>(stop-start);
 
 	/* ----------------------- Preprocessing: convert letters to bits --------------------------------------*/
 	if (bwa_verbose>=4) fprintf(stderr, "[M::%-25s] **** [PREPROCESS ]: convert letters to bits ...\n", __func__);
 	PREPROCESS_convert_bit_encoding_kernel <<< n_seqs, 32, 0, process_stream >>> (d_seqs);
 	gpuErrchk2( cudaPeekAtLastError() );
 	gpuErrchk2( cudaStreamSynchronize(process_stream) );
-
+	stop = high_resolution_clock::now();
+	duration = duration_cast<milliseconds>(stop-start);
+	perf_profile_file << "PREPROCSS:" << duration.count() << std::endl;
+	start = high_resolution_clock::now();
 	/* ----------------------- First part of pipeline: find SMEM intervals --------------------------------------*/
 	if (bwa_verbose>=4) fprintf(stderr, "[M::%-25s] **** [MEM FINDING]: collect MEM intervals ...\n", __func__);
 	MEMFINDING_collect_intv_kernel <<< n_seqs, 320, 512, process_stream >>> (
@@ -3540,6 +3545,10 @@ void mem_align_GPU(process_data_t *process_data)
 	// 	d_buffer_pools);
 	gpuErrchk2( cudaPeekAtLastError() );
 	gpuErrchk2( cudaStreamSynchronize(process_stream) );
+	stop = high_resolution_clock::now();
+	duration = duration_cast<milliseconds>(stop-start);
+	perf_profile_file << "Collect:" << duration.count() << std::endl;
+	start = high_resolution_clock::now();
 
 	/* ----------------------- Second part of pipeline: chaining seeds --------------------------------------*/
 	/* separate seeds from bwt intervals, filter out duplicated seeds */
@@ -3548,6 +3557,10 @@ void mem_align_GPU(process_data_t *process_data)
 		d_opt, d_aux, d_buffer_pools);
 	gpuErrchk2( cudaPeekAtLastError() );
 	gpuErrchk2( cudaStreamSynchronize(process_stream) );
+	stop = high_resolution_clock::now();
+	duration = duration_cast<milliseconds>(stop-start);
+	perf_profile_file << "FILTER:" <<  duration.count() << std::endl;
+	start = high_resolution_clock::now();
 
 	/* translate seed info from bwt index */
 	if (bwa_verbose>=4)  fprintf(stderr, "[M::%-25s] **** [SEED CHAINING]: translating seed info ...\n", __func__);
@@ -3557,7 +3570,10 @@ void mem_align_GPU(process_data_t *process_data)
 		d_buffer_pools);
 	gpuErrchk2( cudaPeekAtLastError() );
 	gpuErrchk2( cudaStreamSynchronize(process_stream) );
-
+	stop = high_resolution_clock::now();
+	duration = duration_cast<milliseconds>(stop-start);
+	perf_profile_file << "Translate:" << duration.count() << std::endl;
+	start = high_resolution_clock::now();
 	/* sort seeds by rbeg for each read */
 	if (bwa_verbose>=4)  fprintf(stderr, "[M::%-25s] **** [SEED CHAINING]: sorting seeds by rbeg (low n_seeds) ...\n", __func__);
 	SEEDCHAINING_sortSeeds_low_kernel <<< n_seqs, SORTSEEDSLOW_BLOCKDIMX, 0, process_stream >>> (
@@ -3565,13 +3581,17 @@ void mem_align_GPU(process_data_t *process_data)
 		d_buffer_pools);
 	gpuErrchk2( cudaPeekAtLastError() );
 	gpuErrchk2( cudaStreamSynchronize(process_stream) );
+	
 	if (bwa_verbose>=3)  fprintf(stderr, "[M::%-25s] **** [SEED CHAINING]: sorting seeds by rbeg (high n_seeds) ...\n", __func__);
 	SEEDCHAINING_sortSeeds_high_kernel <<< n_seqs, SORTSEEDSHIGH_BLOCKDIMX, 0, process_stream >>> (
 		d_seq_seeds,
 		d_buffer_pools);
 	gpuErrchk2( cudaPeekAtLastError() );
 	gpuErrchk2( cudaStreamSynchronize(process_stream) );
-
+	stop = high_resolution_clock::now();
+	duration = duration_cast<milliseconds>(stop-start);
+	perf_profile_file << "SortSeeds:" << duration.count() << std::endl;
+	start = high_resolution_clock::now();
 	/* seed chaining */
 	if (bwa_verbose>=4)  fprintf(stderr, "[M::%-25s] **** [SEED CHAINING]: chaining seeds ...\n", __func__);
 	SEEDCHAINING_chain_kernel <<< n_seqs, SEEDCHAINING_CHAIN_BLOCKDIMX, 0, process_stream >>> (
@@ -3580,7 +3600,10 @@ void mem_align_GPU(process_data_t *process_data)
 		d_buffer_pools);
 	gpuErrchk2( cudaPeekAtLastError() );
 	gpuErrchk2( cudaStreamSynchronize(process_stream) );
-
+	stop = high_resolution_clock::now();
+	duration = duration_cast<milliseconds>(stop-start);
+	perf_profile_file << "ChainSeeds:" << duration.count() << std::endl;
+	start = high_resolution_clock::now();
 	// /* second kernel: chaining seeds */
 	// if (bwa_verbose>=4)  fprintf(stderr, "[M::%-25s] **** [SEEDCHAINING]: Launch kernel mem_chain ...\n", __func__);
 	// dimGrid.x = ceil((double)gpu_data.n_seqs/CUDA_BLOCKSIZE);
@@ -3613,7 +3636,10 @@ void mem_align_GPU(process_data_t *process_data)
 		d_chains, d_buffer_pools);
 	gpuErrchk2( cudaPeekAtLastError());
 	gpuErrchk2( cudaStreamSynchronize(process_stream) );
-
+	stop = high_resolution_clock::now();
+	duration = duration_cast<milliseconds>(stop-start);
+	perf_profile_file << "SortChain:" << duration.count() << std::endl;
+	start = high_resolution_clock::now();
 	/* filter chains */
 	if (bwa_verbose>=4) fprintf(stderr, "[M::%-25s] **** [CHAIN FILTERING]: Launch kernel mem_chain_flt ...\n", __func__);
 	CHAINFILTERING_filter_kernel <<< n_seqs, CHAIN_FLT_BLOCKSIZE, MAX_N_CHAIN*(3*sizeof(uint16_t)+sizeof(uint8_t)), process_stream >>> (
@@ -3622,7 +3648,10 @@ void mem_align_GPU(process_data_t *process_data)
 			d_buffer_pools);
 	gpuErrchk2( cudaPeekAtLastError() );
 	gpuErrchk2( cudaStreamSynchronize(process_stream) );
-
+	stop = high_resolution_clock::now();
+	duration = duration_cast<milliseconds>(stop-start);
+	perf_profile_file << "filterKernel:" << duration.count() << std::endl;
+	start = high_resolution_clock::now();
 	/* fourth kernel: mem_flt_chained_seeds */
 	if (bwa_verbose>=4) fprintf(stderr, "[M::%-25s] **** [CHAIN FILTERING]: Launch kernel mem_flt_chained_seeds ...\n", __func__);
 	CHAINFILTERING_flt_chained_seeds_kernel <<< dimGrid_readlevel, dimBlock_readlevel, 0, process_stream >>> (
@@ -3632,11 +3661,11 @@ void mem_align_GPU(process_data_t *process_data)
 	gpuErrchk2( cudaPeekAtLastError() );
 	gpuErrchk2( cudaStreamSynchronize(process_stream) );
 
-	auto stop = high_resolution_clock::now();
-	auto duration = duration_cast<milliseconds>(stop-start);
-	perf_profile_file << duration.count() << ",";
-
+	stop= high_resolution_clock::now();
+	duration = duration_cast<milliseconds>(stop-start);
+	perf_profile_file << "flt:" << duration.count() << std::endl;
 	start = high_resolution_clock::now();
+	
 	/* ----------------------- Fourth part of pipeline: Smith-Waterman extension --------------------------------------*/
 	/* pre-processing for SW extension: count number of seeds a read has, write seed_record to global mem, and allocate vector mem_alnreg_t for each read */
 	if (bwa_verbose>=4) fprintf(stderr, "[M::%-25s] **** [SMITHEWATERMAN]: preprocessing1 ... ", __func__);
