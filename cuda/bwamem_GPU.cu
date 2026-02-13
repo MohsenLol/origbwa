@@ -2194,7 +2194,7 @@ __global__ void CHAINFILTERING_sortChains_kernel(mem_chain_v* d_chains, void* d_
 	// early safety bound (recommended even if rare)
     if (n_chn > MAX_N_CHAIN) {
         if (threadIdx.x == 0) {
-          //  printf("Warning: n_chn > MAX_N_CHAIN (%d > %d) seqID=%d\n", n_chn, MAX_N_CHAIN, blockIdx.x);
+            printf("Warning: n_chn > MAX_N_CHAIN (%d > %d) seqID=%d\n", n_chn, MAX_N_CHAIN, blockIdx.x);
         }
         return;
     }
@@ -2272,7 +2272,7 @@ __global__ void CHAINFILTERING_filter_kernel(
 	if (n_chn == 0) return; // no need to filter
 	if (n_chn > MAX_N_CHAIN) { // early safety bound (recommended even if rare)
         if (threadIdx.x == 0) {
-            //printf("Warning: n_chn > MAX_N_CHAIN (%d > %d) seqID=%d\n", n_chn, MAX_N_CHAIN, seqID);
+            printf("Warning: n_chn > MAX_N_CHAIN (%d > %d) seqID=%d\n", n_chn, MAX_N_CHAIN, seqID);
         }
         return;
     }
@@ -2391,7 +2391,7 @@ __global__ void mem_chain_flt_kernel(const mem_opt_t *opt,
 	// early safety bound + thread guard
     if (n_chn > MAX_N_CHAIN) {
         if (threadIdx.x == 0) {
-            //printf("Warning: n_chn > MAX_N_CHAIN (%d > %d) seqID=%d\n", n_chn, MAX_N_CHAIN, seqID);
+            printf("Warning: n_chn > MAX_N_CHAIN (%d > %d) seqID=%d\n", n_chn, MAX_N_CHAIN, seqID);
         }
         return;
     }
