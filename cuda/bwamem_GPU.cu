@@ -1896,6 +1896,7 @@ __global__ void SEEDCHAINING_sortSeeds_low_kernel(
 	if (threadIdx.x == 0) {
         d_seq_seeds[blockIdx.x].a = new_seed_a;
     }
+}
 
 
 // process reads who have more seeds
